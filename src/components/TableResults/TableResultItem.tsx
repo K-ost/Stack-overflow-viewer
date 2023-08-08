@@ -1,4 +1,5 @@
-import { setUserID, setUserName } from "../../store/appSlice"
+import { Link } from "react-router-dom"
+import { setTag, setUser } from "../../store/appSlice"
 import { useAppDispatch } from "../../store/hooks"
 import { QuestiontType } from "../../types"
 
@@ -9,10 +10,16 @@ interface ITableResultItem {
 const TableResultItem: React.FC<ITableResultItem> = ({ el }) => {
   const dispatch = useAppDispatch()
 
+  // setUserIDForQuestion
   const setUserIDForQuestion = (e: any) => {
     e.preventDefault()
-    dispatch(setUserID(el.owner.user_id))
-    dispatch(setUserName(el.owner.display_name))
+    dispatch(setUser({id: el.owner.user_id, name: el.owner.display_name}))
+  }
+
+  // setTag
+  const chooseTag = (e: any, tag: string) => {
+    e.preventDefault()
+    dispatch(setTag(tag))
   }
 
   return (
@@ -27,12 +34,14 @@ const TableResultItem: React.FC<ITableResultItem> = ({ el }) => {
         </li>
         <li>
           <small>Replies:</small> &nbsp;
-          <a href="/">{el.answer_count}</a>
+          <Link to={`/info/${el.question_id}`}>{el.answer_count}</Link>
         </li>
       </ul>
       <div className="question_item-line">
         <small>Tags:</small><br />
-        {el.tags.map((tag, index) => <a href="/" className="badge text-bg-warning me-2" key={index}>{tag}</a>)}
+        {el.tags.map((tag, index) => (
+          <a href="/" className="badge text-bg-warning me-2" key={index} onClick={(e) => chooseTag(e, tag)}>{tag}</a>
+        ))}
       </div>
     </div>
   )

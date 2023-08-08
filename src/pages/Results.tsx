@@ -9,13 +9,13 @@ import { resetState, setSearch } from "../store/appSlice"
 const Results: React.FC = () => {
   const search = useAppSelector(state => state.app.search)
   const userID = useAppSelector(state => state.app.userID)
-  const userName = useAppSelector(state => state.app.userName)
+  const tag = useAppSelector(state => state.app.tag)
   const dispatch = useAppDispatch()
   const [searchParams, setSearchParams] = useSearchParams()
   const [title, setTitle] = useState<string | null>(search)
   const [items, setItems] = useState<QuestiontType[]>([])
-  const [itemsView, setItemsView] = useState<any[]>([])
-  const [titleView, setTitleView] = useState<string>('')
+  const [itemsView, setItemsView] = useState<QuestiontType[]>([])
+  const [itemsTag, setItemsTag] = useState<QuestiontType[]>([])
   const [notfound, setNotfound] = useState<boolean>(true)
 
 
@@ -35,14 +35,16 @@ const Results: React.FC = () => {
       fetch(`https://api.stackexchange.com/2.3/search?order=desc&sort=activity&intitle=${searchParams.get('s')}&site=stackoverflow`)
         .then(response => response.json())
         .then(data => {
-          setNotfound(data.has_more)
-          setItems(data.items)
+          if (data.has_more) {
+            setNotfound(data.has_more)
+            setItems(data.items)
+          }
         })
     }
     return () => {
       dispatch(resetState())
     }
-  }, [searchParams])
+  }, [dispatch, searchParams])
 
 
   useEffect(() => {
@@ -51,10 +53,15 @@ const Results: React.FC = () => {
         .then(response => response.json())
         .then(data => {
           setItemsView(data.items)
-          setTitleView(`Questions of user ${userName}`)
         })
     }
-  }, [userID])
+
+    if (tag.length) {
+      fetch(`https://api.stackexchange.com/2.3/questions?order=desc&sort=activity&tagged=${tag}&site=stackoverflow`)
+        .then(response => response.json())
+        .then(data => setItemsTag(data.items))
+    }
+  }, [tag, userID])
 
 
   return (
@@ -67,8 +74,9 @@ const Results: React.FC = () => {
         <Panel title="Search results">
           <TableResults list={items!} notfound={notfound} />
         </Panel>
-        <Panel title={`Quick view panel - ${titleView}`}>
+        <Panel title="Quick view panel">
           <TableResults list={itemsView!} notfound={true} />
+          <TableResults list={itemsTag!} notfound={true} />
         </Panel>
       </div>
     </div>
